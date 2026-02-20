@@ -1,4 +1,9 @@
 import os
+import asyncio
+
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
