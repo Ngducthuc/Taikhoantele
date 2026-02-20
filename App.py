@@ -6,7 +6,7 @@ from telegram.ext import (
     ContextTypes,
 )
 
-TOKEN = os.getenv("8508681013:AAEqpI8NHfygu4FckRLbYvGYHZY5qqcJwjk")
+TOKEN = os.getenv("BOT_TOKEN")
 FILE_NAME = "taikhoan.txt"
 
 # Username được phép sử dụng bot
