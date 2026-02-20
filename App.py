@@ -1,5 +1,4 @@
 import os
-import asyncio
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -8,9 +7,11 @@ from telegram.ext import (
 )
 
 TOKEN = os.getenv("BOT_TOKEN")
-FILE_NAME = "taikhoan.txt"
 
-# Username được phép sử dụng bot
+if not TOKEN:
+    raise ValueError("BOT_TOKEN chưa được thiết lập trong Environment Variables")
+
+FILE_NAME = "taikhoan.txt"
 ALLOWED_USERNAME = "savic888"
 
 # Đảm bảo file tồn tại
@@ -18,12 +19,10 @@ if not os.path.exists(FILE_NAME):
     open(FILE_NAME, "a").close()
 
 
-# 🔐 Hàm kiểm tra quyền
+# 🔐 Kiểm tra quyền
 def is_authorized(update: Update):
     user = update.effective_user
-    if user.username == ALLOWED_USERNAME:
-        return True
-    return False
+    return user and user.username == ALLOWED_USERNAME
 
 
 # /start
@@ -45,7 +44,7 @@ async def add_account(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if not context.args:
-        await update.message.reply_text("Vui lòng nhập tài khoản theo dạng:\n/add id|pass|2fa|...")
+        await update.message.reply_text("Vui lòng nhập:\n/add id|pass|2fa|...")
         return
 
     account_data = " ".join(context.args)
@@ -62,7 +61,7 @@ async def view_account(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if not context.args:
-        await update.message.reply_text("Vui lòng nhập id cần tìm:\n/xem id")
+        await update.message.reply_text("Vui lòng nhập id:\n/xem id")
         return
 
     search_id = context.args[0]
@@ -89,15 +88,16 @@ async def view_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not data.strip():
         await update.message.reply_text("File trống.")
+        return
+
+    if len(data) > 4000:
+        for i in range(0, len(data), 4000):
+            await update.message.reply_text(data[i:i+4000])
     else:
-        if len(data) > 4000:
-            for i in range(0, len(data), 4000):
-                await update.message.reply_text(data[i:i+4000])
-        else:
-            await update.message.reply_text(data)
+        await update.message.reply_text(data)
 
 
-async def main():
+def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
@@ -106,8 +106,8 @@ async def main():
     app.add_handler(CommandHandler("xemall", view_all))
 
     print("Bot đang chạy...")
-    await app.run_polling()
+    app.run_polling()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
