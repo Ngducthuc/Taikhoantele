@@ -38,6 +38,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Bot quản lý tài khoản\n\n"
         "/add <id|pass|2fa|...>\n"
+        "/sua <id|pass|2fa|...>\n"
         "/xem <id>\n"
         "/xemall"
     )
@@ -101,6 +102,50 @@ async def view_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text(data)
 
+# /sua
+async def edit_account(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_authorized(update):
+        return
+
+    if not context.args:
+        await update.message.reply_text("Vui lòng nhập:\n/sua id|pass|2fa|...")
+        return
+
+    new_data = " ".join(context.args)
+
+    if "|" not in new_data:
+        await update.message.reply_text("Sai định dạng. Phải là id|pass|2fa|...")
+        return
+
+    new_id = new_data.split("|")[0]
+
+    updated = False
+    lines = []
+
+    # Đọc file
+    with open(FILE_NAME, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    # Ghi đè nếu trùng id
+    for i in range(len(lines)):
+        if lines[i].startswith(new_id + "|"):
+            lines[i] = new_data + "\n"
+            updated = True
+            break
+
+    # Nếu không tìm thấy thì thêm mới
+    if not updated:
+        lines.append(new_data + "\n")
+
+    # Ghi lại file
+    with open(FILE_NAME, "w", encoding="utf-8") as f:
+        f.writelines(lines)
+
+    if updated:
+        await update.message.reply_text("✏️ Đã cập nhật tài khoản!")
+    else:
+        await update.message.reply_text("➕ ID chưa tồn tại. Đã thêm mới!")
+
 
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
@@ -109,6 +154,7 @@ def main():
     app.add_handler(CommandHandler("add", add_account))
     app.add_handler(CommandHandler("xem", view_account))
     app.add_handler(CommandHandler("xemall", view_all))
+    app.add_handler(CommandHandler("sua", edit_account))
 
     print("Bot đang chạy...")
     app.run_polling()
