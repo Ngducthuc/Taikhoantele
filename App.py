@@ -1,4 +1,5 @@
 import os
+import asyncio
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -96,7 +97,7 @@ async def view_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(data)
 
 
-def main():
+async def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
@@ -105,8 +106,8 @@ def main():
     app.add_handler(CommandHandler("xemall", view_all))
 
     print("Bot đang chạy...")
-    app.run_polling()
+    await app.run_polling()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
